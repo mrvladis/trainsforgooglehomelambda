@@ -39,7 +39,7 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/"
   trainsforgooglehomelambdaFunction:
     Description: "MySecond Lambda Function ARN"
-    Value: !GetAtt trainsforgooglehomelambdaFunction.Arn
+    Value: !GetAtt trainsforgooglehomelambda.Arn
   trainsforgooglehomelambdaFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt trainsforgooglehomelambdaFunctionRole.Arn
+    Value: !GetAtt trainsforgooglehomelambdaRole.Arn
