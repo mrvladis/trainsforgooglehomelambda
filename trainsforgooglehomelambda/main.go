@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,9 +12,11 @@ import (
 )
 
 type appParams struct {
-	Password string `json:"Password"`
-	Field2   string `json:"Field2"`
-	Field3   string `json:"Field3"`
+	LdbwsToken       string `json:"LdbwsToken"`
+	LdbwsEndpoint    string `json:"Ldbwsendpoint"`
+	DestPreposition  string `json:"DestPreposition"`
+	SrcPreposition   string `json:"SrcPreposition"`
+	DefaultTimeFrame string `json:"DefaultTimeFrame"`
 }
 
 var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
@@ -31,6 +35,26 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	}
 }
 func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	//Get the Application Parameters
+	secrets, err := getSecret()
+	if err != nil {
+		fmt.Printf("Coudn't retreive Secrets")
+		return serverError(err)
+	}
+	if secrets == "" {
+		fmt.Println("Secrets  are empty")
+		return serverError(err)
+	}
+	ApplicationParameters := new(appParams)
+	err = json.Unmarshal([]byte(secrets), &ApplicationParameters)
+	if err != nil {
+		fmt.Println("Couldn't unmarshal Application parameters")
+		return clientError(http.StatusUnprocessableEntity)
+	}
+
+	fmt.Printf("Ldbws Endpoint:[ %s ] \n", ApplicationParameters.LdbwsEndpoint)
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Body:       string(response),
