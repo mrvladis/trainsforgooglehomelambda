@@ -7,10 +7,9 @@ import (
 	"net/http"
 )
 
-func executeSOAPRequest(payload string, url string) (*http.Response, error) {
+func executeSOAPRequest(payload []byte, url string) (*http.Response, error) {
 
 	httpMethod := "POST"
-
 	req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 	if err != nil {
 		log.Fatal("Error on creating request object. ", err.Error())

@@ -4,14 +4,44 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
+
+type requestSoapEnv struct {
+	XMLName      xml.Name      `xml:"soapenv:Envelope"`
+	XMLNsSoapEnv string        `xml:"xmlns:soapenv,attr"`
+	XMLNsTyp     string        `xml:"xmlns:typ,attr"`
+	XMLNsLDB     string        `xml:"xmlns:ldb,attr"`
+	Header       requestHeader `xml:"soapenv:Header"`
+	Body         requestBody   `xml:"soapenv:Body"`
+}
+
+type requestHeader struct {
+	AccessToken requestToken `xml:"typ:AccessToken"`
+}
+
+type requestToken struct {
+	TokenValue string `xml:"typ:TokenValue"`
+}
+
+type requestBody struct {
+	Ldb requestLdb `xml:"ldb:GetDepBoardWithDetailsRequest"`
+}
+
+type requestLdb struct {
+	NumRows    int    `xml:"ldb:numRows"`
+	Crs        string `xml:"ldb:crs"`
+	FilterCrs  string `xml:"ldb:filterCrs"`
+	FilterType string `xml:"ldb:filterType"`
+	TimeOffset int    `xml:"ldb:timeOffset"`
+	TimeWindow int    `xml:"ldb:timeWindow"`
+}
 
 type appParams struct {
 	LdbwsToken       string `json:"LdbwsToken"`
@@ -51,27 +81,26 @@ type ldb struct {
 	TimeWindow int    `xml:"timeWindow"`
 }
 
-var payload = []byte(strings.TrimSpace(`
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
-xmlns:typ="http://thalesgroup.com/RTTI/2013-11-28/Token/types" 
-xmlns:ldb="http://thalesgroup.com/RTTI/2017-10-01/ldb/">
-<soapenv:Header>
-	<typ:AccessToken>
-		<typ:TokenValue>TokenWasHere</typ:TokenValue>
-	</typ:AccessToken>
-</soapenv:Header>
-<soapenv:Body>
-	<ldb:GetDepBoardWithDetailsRequest>
-		<ldb:numRows>10</ldb:numRows>
-		<ldb:crs>OKL</ldb:crs>
-		<ldb:filterCrs>?</ldb:filterCrs>
-		<ldb:filterType>to</ldb:filterType>
-		<ldb:timeOffset>0</ldb:timeOffset>
-		<ldb:timeWindow>60</ldb:timeWindow>
-	</ldb:GetDepBoardWithDetailsRequest>
-</soapenv:Body>
-</soapenv:Envelope>`,
-))
+var requestTemplate = requestSoapEnv{
+	XMLNsSoapEnv: "http://schemas.xmlsoap.org/soap/envelope/",
+	XMLNsTyp:     "http://thalesgroup.com/RTTI/2013-11-28/Token/types",
+	XMLNsLDB:     "http://thalesgroup.com/RTTI/2017-10-01/ldb/",
+	Header: requestHeader{
+		AccessToken: requestToken{
+			TokenValue: "Future Token",
+		},
+	},
+	Body: requestBody{
+		Ldb: requestLdb{
+			NumRows:    10,
+			Crs:        "OKL",
+			FilterCrs:  "?",
+			FilterType: "to",
+			TimeOffset: 0,
+			TimeWindow: 60,
+		},
+	},
+}
 
 var response string
 
@@ -107,16 +136,51 @@ func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayPro
 	// Prepare request
 
 	fmt.Println("Preparing XML Soap Request")
-	xmlObject := new(soapenv)
-	fmt.Println("Unmarshaling Template")
-	xml.Unmarshal([]byte(payload), &xmlObject)
-	fmt.Println("Updating Token Value")
-	xmlObject.Header.AccessToken.TokenValue = ApplicationParameters.LdbwsToken
+
+	requestTemplate.Header.AccessToken.TokenValue = ApplicationParameters.LdbwsToken
+	requestTemplate.Body.Ldb.FilterCrs = "FPK"
+
+	payload, err := xml.MarshalIndent(requestTemplate, "", "  ")
 	fmt.Println("Update")
+	fmt.Printf("%v", payload)
+	fmt.Println("Executing SOAP Request")
+
+	response, err := executeSOAPRequest(payload, "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
+	if err != nil {
+		log.Fatal("Error on processing response. ", err.Error())
+		return serverError(err)
+
+	}
+	if response.StatusCode != 200 {
+		fmt.Printf("Request failed with the error code %v and error %v", response.StatusCode, response.Status)
+		return serverError(err)
+	}
+	fmt.Println("Preparing Result")
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return serverError(err)
+	}
+
+	fmt.Println("Result:")
+	fmt.Println(string(bodyBytes))
+
+	/* fmt.Println("Processing XML Soap Response")
+	xmlObject := new(responseSoapEnv)
+	xmlObject1 := new(responseSoapEnv)
+	fmt.Println("Unmarshaling Template")
+	err = xml.NewDecoder(response.Body).Decode(xmlObject)
+	xml.Unmarshal(bodyBytes, &xmlObject1)
+
+	if err != nil {
+		log.Fatal("Error on unmarshaling xml. ", err.Error())
+		return
+	} */
+
+	//xmlObject.Header.AccessToken.TokenValue = ApplicationParameters.LdbwsToken
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
-		Body:       string(response),
+		Body:       string(string(bodyBytes)),
 	}, nil
 }
 
@@ -141,5 +205,5 @@ func clientError(status int) (events.APIGatewayProxyResponse, error) {
 }
 
 func main() {
-	lambda.Start(router)
+	lambda.Start(processRequest)
 }
