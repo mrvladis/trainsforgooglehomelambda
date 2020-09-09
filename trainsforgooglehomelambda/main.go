@@ -51,6 +51,83 @@ type appParams struct {
 	DefaultTimeFrame string `json:"DefaultTimeFrame"`
 }
 
+// Response structure
+type responseSoapEnv struct {
+	XMLName xml.Name
+	Body    responseBody `xml:"Body"`
+}
+
+type responseBody struct {
+	XMLName                        xml.Name
+	GetDepBoardWithDetailsResponse responseBoardWithDetailsResponse `xml:"GetDepBoardWithDetailsResponse"`
+}
+
+type responseBoardWithDetailsResponse struct {
+	XMLName               xml.Name
+	GetStationBoardResult responseStationBoardResult `xml:"GetStationBoardResult"`
+}
+
+type responseStationBoardResult struct {
+	XMLName            xml.Name
+	GeneratedAt        string                `xml:"generatedAt"`
+	LocationName       string                `xml:"locationName"`
+	Crs                string                `xml:"crs"`
+	FilterLocationName string                `xml:"filterLocationName"`
+	Filtercrs          string                `xml:"filtercrs"`
+	PlatformAvailable  bool                  `xml:"platformAvailable"`
+	TrainServices      responseTrainServices `xml:"trainServices"`
+}
+
+type responseTrainServices struct {
+	XMLName xml.Name
+	Service []responseService `xml:"service"`
+}
+type responseService struct {
+	XMLName                 xml.Name
+	Std                     string                    `xml:"std"`
+	Etd                     string                    `xml:"etd"`
+	Platform                string                    `xml:"platform"`
+	Operator                string                    `xml:"operator"`
+	OperatorCode            string                    `xml:"operatorCode"`
+	ServiceType             string                    `xml:"serviceType"`
+	Length                  int                       `xml:"length"`
+	ServiceID               string                    `xml:"serviceID"`
+	Rsid                    string                    `xml:"rsid"`
+	Origin                  responseOrigin            `xml:"origin"`
+	Destination             responseOrigin            `xml:"destination"`
+	SubsequentCallingPoints responseCallingPointsList `xml:"subsequentCallingPoints"`
+	Other                   interface{}               `xml:",any"`
+}
+
+type responseCallingPointsList struct {
+	XMLName          xml.Name
+	CallingPointList responseCallingPoint `xml:"callingPointList"`
+}
+
+type responseCallingPoint struct {
+	XMLName      xml.Name
+	CallingPoint []responsePoint `xml:"callingPoint"`
+}
+
+type responsePoint struct {
+	XMLName      xml.Name
+	LocationName string `xml:"locationName"`
+	Crs          string `xml:"crs"`
+	St           string `xml:"st"`
+	Et           string `xml:"et"`
+	Length       int    `xml:"length"`
+}
+
+type responseOrigin struct {
+	Location responseLocation `xml:"location"`
+}
+
+type responseLocation struct {
+	XMLName      xml.Name
+	LocationName string `xml:"locationName"`
+	Crs          string `xml:"crs"`
+}
+
 var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
 var awsRegion, secretName, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN = os.Getenv("AWSRegion"), os.Getenv("secretName"), os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), os.Getenv("AWS_SESSION_TOKEN")
 
