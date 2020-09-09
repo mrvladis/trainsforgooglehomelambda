@@ -129,7 +129,9 @@ type responseLocation struct {
 }
 
 var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
-var awsRegion, secretName, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN = os.Getenv("AWSRegion"), os.Getenv("secretName"), os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), os.Getenv("AWS_SESSION_TOKEN")
+var awsRegion, secretName = os.Getenv("AWSRegion"), os.Getenv("secretName")
+var awsAccessKeyID, awsSecretAccessKey = os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY")
+var awsSessionToken = os.Getenv("AWS_SESSION_TOKEN")
 
 type soapenv struct {
 	XMLName xml.Name
@@ -233,7 +235,18 @@ func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayPro
 		fmt.Printf("Request failed with the error code %v and error %v", response.StatusCode, response.Status)
 		return serverError(err)
 	}
+
+	responseXMLObject := new(responseSoapEnv)
+	err = xml.NewDecoder(response.Body).Decode(responseXMLObject)
+	if err != nil {
+		log.Fatal("Error on unmarshaling xml. ", err.Error())
+		return serverError(err)
+	}
+
 	fmt.Println("Preparing Result")
+	trainsCount := len(responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service)
+	fmt.Printf("There are %v trains", trainsCount)
+	fmt.Println("Fake Temp Result")
 	bodyBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return serverError(err)
