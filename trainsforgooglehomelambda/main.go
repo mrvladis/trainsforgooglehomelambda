@@ -52,7 +52,7 @@ type appParams struct {
 }
 
 var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
-var awsRegion, secretName = os.Getenv("AWSRegion"), os.Getenv("secretName")
+var awsRegion, secretName, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN = os.Getenv("AWSRegion"), os.Getenv("secretName"), os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), os.Getenv("AWS_SESSION_TOKEN")
 
 type soapenv struct {
 	XMLName xml.Name
@@ -115,6 +115,7 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	}
 }
 func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	fmt.Println("Getting the Application Parameters")
 
 	//Get the Application Parameters
 	secrets, err := getSecret()

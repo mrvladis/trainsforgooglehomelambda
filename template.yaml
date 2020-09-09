@@ -28,6 +28,9 @@ Resources:
         Variables:
           PARAM1: trainsforgooglehomelambda
           AWSRegion: eu-west-2
+          AWS_SESSION_TOKEN: ""
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
           secretName: prod/trainsforgooglehomelambda/parameters
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
