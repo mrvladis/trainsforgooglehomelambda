@@ -1,18 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+// Request Structure
 type requestSoapEnv struct {
 	XMLName      xml.Name      `xml:"soapenv:Envelope"`
 	XMLNsSoapEnv string        `xml:"xmlns:soapenv,attr"`
@@ -41,14 +44,6 @@ type requestLdb struct {
 	FilterType string `xml:"ldb:filterType"`
 	TimeOffset int    `xml:"ldb:timeOffset"`
 	TimeWindow int    `xml:"ldb:timeWindow"`
-}
-
-type appParams struct {
-	LdbwsToken       string `json:"LdbwsToken"`
-	LdbwsEndpoint    string `json:"Ldbwsendpoint"`
-	DestPreposition  string `json:"DestPreposition"`
-	SrcPreposition   string `json:"SrcPreposition"`
-	DefaultTimeFrame string `json:"DefaultTimeFrame"`
 }
 
 // Response structure
@@ -160,6 +155,22 @@ type ldb struct {
 	TimeWindow int    `xml:"timeWindow"`
 }
 
+//Google Response Structure
+
+type googleResponse struct {
+	FulfillmentText string `json:"fulfillmentText"`
+}
+
+// Generic variables
+
+type appParams struct {
+	LdbwsToken       string `json:"LdbwsToken"`
+	LdbwsEndpoint    string `json:"Ldbwsendpoint"`
+	DestPreposition  string `json:"DestPreposition"`
+	SrcPreposition   string `json:"SrcPreposition"`
+	DefaultTimeFrame string `json:"DefaultTimeFrame"`
+}
+
 var requestTemplate = requestSoapEnv{
 	XMLNsSoapEnv: "http://schemas.xmlsoap.org/soap/envelope/",
 	XMLNsTyp:     "http://thalesgroup.com/RTTI/2013-11-28/Token/types",
@@ -181,7 +192,8 @@ var requestTemplate = requestSoapEnv{
 	},
 }
 
-var response string
+var response, googleHomeMessage, message string
+var responseToGoogle googleResponse
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch req.HTTPMethod {
@@ -219,7 +231,12 @@ func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayPro
 
 	requestTemplate.Header.AccessToken.TokenValue = ApplicationParameters.LdbwsToken
 	requestTemplate.Body.Ldb.FilterCrs = "FPK"
+	requestTemplate.Body.Ldb.TimeWindow, err = strconv.Atoi(ApplicationParameters.DefaultTimeFrame)
+	if err != nil {
+		log.Fatal("Failed to convert ApplicationParameters.DefaultTimeFrame value to integer ", err.Error())
+		return serverError(err)
 
+	}
 	payload, err := xml.MarshalIndent(requestTemplate, "", "  ")
 	fmt.Println("Update")
 	fmt.Printf("%v", payload)
@@ -246,32 +263,34 @@ func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayPro
 	fmt.Println("Preparing Result")
 	trainsCount := len(responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service)
 	fmt.Printf("There are %v trains", trainsCount)
-	fmt.Println("Fake Temp Result")
-	bodyBytes, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return serverError(err)
+	currentServices := responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service
+	fmt.Printf("There are %v trains", trainsCount)
+	fmt.Printf("Processing Trains Information")
+	if trainsCount > 0 {
+		googleHomeMessage = fmt.Sprintf("There are currently %v services scheduled from %v within the next %v minutes:\n", trainsCount, responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, ApplicationParameters.DefaultTimeFrame)
+		for _, trainService := range currentServices {
+			if strings.EqualFold(trainService.Etd, "Cancelled") {
+				message = fmt.Sprintf("%v %v %v service has been %v . \n", trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, trainService.Etd)
+			} else {
+				message = fmt.Sprintf("%v %v %v service running %v formed of %v coaches. \n", trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, trainService.Etd, trainService.Length)
+			}
+			googleHomeMessage += message
+		}
 	}
 
-	fmt.Println("Result:")
-	fmt.Println(string(bodyBytes))
-
-	/* fmt.Println("Processing XML Soap Response")
-	xmlObject := new(responseSoapEnv)
-	xmlObject1 := new(responseSoapEnv)
-	fmt.Println("Unmarshaling Template")
-	err = xml.NewDecoder(response.Body).Decode(xmlObject)
-	xml.Unmarshal(bodyBytes, &xmlObject1)
-
+	responseToGoogle.FulfillmentText = googleHomeMessage
+	var buffer bytes.Buffer
+	json.NewEncoder(&buffer).Encode(&responseToGoogle)
+	reponseToGoogleBody, err := json.Marshal(responseToGoogle)
+	fmt.Printf("Marshaled Json: %v", string(reponseToGoogleBody))
+	fmt.Printf("Encoded Json: %v", buffer.String())
 	if err != nil {
-		log.Fatal("Error on unmarshaling xml. ", err.Error())
-		return
-	} */
-
-	//xmlObject.Header.AccessToken.TokenValue = ApplicationParameters.LdbwsToken
-
+		fmt.Println(err)
+		serverError(err)
+	}
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
-		Body:       string(string(bodyBytes)),
+		Body:       buffer.String(),
 	}, nil
 }
 
