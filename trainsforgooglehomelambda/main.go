@@ -207,7 +207,7 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 }
 func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	fmt.Println("Getting the Application Parameters")
-
+	fmt.Println("Request Body: %v", request.Body)
 	//Get the Application Parameters
 	secrets, err := getSecret()
 	if err != nil {
