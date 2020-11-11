@@ -15,7 +15,122 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// Request Structure
+// Request Google Structure
+type requestGoogleHome struct {
+	Handler gHandler `json:"handler"`
+	Intent  gIntent  `json:"intent"`
+	Scene   gScene   `json:"scene"`
+	Session gSession `json:"session"`
+	User    gUser    `json:"user"`
+	Home    gHome    `json:"home"`
+	Device  gDevice  `json:"device"`
+	Context gContext `json:"context"`
+}
+type gHandler struct {
+	Name string `json:"name"`
+}
+
+type gIntent struct {
+	Name   string        `json:"name"`
+	Params gIntentParams `json:"params"`
+	Query  string        `json:"query"`
+}
+type gIntentParams struct {
+	Direction gIntentParameterValue `json:"direction"`
+	Station   gIntentParameterValue `json:"station"`
+	Transport gIntentParameterValue `json:"transport"`
+}
+
+type gIntentParameterValue struct {
+	Original string `json:"original"`
+	Resolved string `json:"resolved"`
+}
+
+type gScene struct {
+	Name              string     `json:"name"`
+	SlotFillingStatus string     `json:"slotFillingStatus"`
+	Slots             gSlot      `json:"slots"`
+	Next              gNextScene `json:"next"`
+}
+
+// Need to be validated. Leaving with fake "name" property for now.
+// Details: https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#Scene
+type gSlot struct {
+	Name string `json:"name"`
+}
+
+// Need to be validated. Leaving with fake "name" property for now.
+// Details: https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#Scene
+type gNextScene struct {
+	Name string `json:"name"`
+}
+
+type gSession struct {
+	ID            string         `json:"id"`
+	Params        gSessionParams `json:"params"`
+	TypeOverrides gTypeOverride  `json:"typeOverrides"`
+	LanguageCode  string         `json:"languageCode"`
+}
+
+// Need to be validated. Leaving with fake "name" property for now.
+// Details https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#Session
+type gSessionParams struct {
+	Name string `json:"name"`
+}
+
+type gTypeOverride struct {
+	Name    string `json:"name"`
+	Mode    string `json:"mode"`
+	Synonym string `json:"synonym"` // Need to be Updated. https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#SynonymType
+}
+
+type gUser struct {
+	Locale               string                   `json:"locale"`
+	Params               gUserParams              `json:"params"`
+	AccountLinkingStatus string                   `json:"accountLinkingStatus"`
+	VerificationStatus   string                   `json:"verificationStatus"`
+	LastSeenTime         string                   `json:"lastSeenTime"`
+	Engagement           gUserEngagement          `json:"engagement"`
+	PackageEntitlements  gUserPackageEntitlements `json:"packageEntitlements"`
+}
+
+// Need to be validated. Leaving with fake "name" property for now.
+// Details https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#User
+type gUserParams struct {
+	Name string `json:"name"`
+}
+type gUserEngagement struct {
+	PushNotificationIntents string `json:"pushNotificationIntents"` // Need to be Updated. https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#Engagement
+	DailyUpdateIntents      string `json:"dailyUpdateIntents"`      // Need to be Updated. https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#Engagement
+}
+
+type gUserPackageEntitlements struct {
+	string `json:""`
+}
+
+type gHome struct {
+	Params gHomeParams `json:"params"`
+}
+type gHomeParams struct {
+	Name string `json:"name"` // Need to be updated. https://developers.google.com/assistant/conversational/reference/rest/v1/TopLevel/fulfill#Home
+}
+type gDevice struct {
+	Capabilities []string `json:"capabilities"`
+}
+type gContext struct {
+	Media gMediaContext `json:"media"`
+}
+type gMediaContext struct {
+	Progress string `json:"progress"`
+}
+
+// Response Google Structure
+
+type googleResponse struct {
+	FulfillmentText string `json:"fulfillmentText"`
+}
+
+// Request SOAP Structure
 type requestSoapEnv struct {
 	XMLName      xml.Name      `xml:"soapenv:Envelope"`
 	XMLNsSoapEnv string        `xml:"xmlns:soapenv,attr"`
@@ -46,7 +161,7 @@ type requestLdb struct {
 	TimeWindow int    `xml:"ldb:timeWindow"`
 }
 
-// Response structure
+// Response SOAP structure
 type responseSoapEnv struct {
 	XMLName xml.Name
 	Body    responseBody `xml:"Body"`
@@ -154,12 +269,6 @@ type ldb struct {
 	FilterType string `xml:"filterType"`
 	TimeOffset int    `xml:"timeOffset"`
 	TimeWindow int    `xml:"timeWindow"`
-}
-
-//Google Response Structure
-
-type googleResponse struct {
-	FulfillmentText string `json:"fulfillmentText"`
 }
 
 // Generic variables
