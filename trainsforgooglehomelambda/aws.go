@@ -11,6 +11,7 @@ import (
 )
 
 func getSecret() (string, error) {
+	//https://docs.aws.amazon.com/sdk-for-go/api/service/secretsmanager/
 	fmt.Println("Preparing Secret input")
 	//Create a Secrets Manager client
 	svc := secretsmanager.New(session.New(),
