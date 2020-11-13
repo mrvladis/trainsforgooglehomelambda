@@ -148,7 +148,7 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 		}
 	}
 
-	responseToGoogle.Prompt.FirstSimple.Speech = googleHomeMessage
+	responseToGoogle.Prompt.FirstSimple.Speech = &googleHomeMessage
 	var buffer bytes.Buffer
 	json.NewEncoder(&buffer).Encode(&responseToGoogle)
 	reponseToGoogleBody, err := json.Marshal(responseToGoogle)
