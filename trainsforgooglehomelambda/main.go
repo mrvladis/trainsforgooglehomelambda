@@ -80,7 +80,7 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 
 	err = json.Unmarshal([]byte(gRequest.Body), &requestFromGoogle)
 	if err != nil {
-		fmt.Println("Couldn't unmarshal Application parameters")
+		fmt.Println("Couldn't unmarshal Google Request")
 		return clientError(http.StatusUnprocessableEntity)
 	}
 	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
