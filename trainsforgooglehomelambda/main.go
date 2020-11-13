@@ -140,12 +140,11 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 		googleHomeMessage = fmt.Sprintf("There are currently %v services scheduled from %v within the next %v minutes:\n", trainsCount, responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, ApplicationParameters.DefaultTimeFrame)
 		for _, trainService := range currentServices {
 			if strings.EqualFold(trainService.Etd, "Cancelled") {
-				message = fmt.Sprintf("%v %v %v service has been %v . \n", trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, trainService.Etd)
+				message = fmt.Sprintln(trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, "service has been", trainService.Etd)
 			} else {
-				message = fmt.Sprintf("%v %v %v service running %v formed of %v coaches. \n", trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, trainService.Etd, trainService.Length)
+				message = fmt.Sprintln(trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, "service running", trainService.Etd, "formed of", trainService.Length, "coaches.")
 			}
 			googleHomeMessage += message
-			googleHomeMessage += fmt.Println()
 		}
 	}
 
