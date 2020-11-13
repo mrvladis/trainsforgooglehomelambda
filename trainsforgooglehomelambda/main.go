@@ -145,6 +145,7 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 				message = fmt.Sprintf("%v %v %v service running %v formed of %v coaches. \n", trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, trainService.Etd, trainService.Length)
 			}
 			googleHomeMessage += message
+			googleHomeMessage += fmt.Println()
 		}
 	}
 
