@@ -73,6 +73,11 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 	err = json.Unmarshal([]byte(secrets), &ApplicationParameters)
 	if err != nil {
 		fmt.Println("Couldn't unmarshal Application parameters")
+		if ute, ok := err.(*json.UnmarshalTypeError); ok {
+			fmt.Printf("UnmarshalTypeError %v - %v - %v\n", ute.Value, ute.Type, ute.Offset)
+		} else {
+			fmt.Println("Other error:", err)
+		}
 		return clientError(http.StatusUnprocessableEntity)
 	}
 	fmt.Printf("Ldbws Endpoint:[ %s ] \n", ApplicationParameters.LdbwsEndpoint)
@@ -81,7 +86,13 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 	err = json.Unmarshal([]byte(gRequest.Body), &requestFromGoogle)
 	if err != nil {
 		fmt.Println("Couldn't unmarshal Google Request")
+		if ute, ok := err.(*json.UnmarshalTypeError); ok {
+			fmt.Printf("UnmarshalTypeError %v - %v - %v\n", ute.Value, ute.Type, ute.Offset)
+		} else {
+			fmt.Println("Other error:", err)
+		}
 		return clientError(http.StatusUnprocessableEntity)
+
 	}
 	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
 
