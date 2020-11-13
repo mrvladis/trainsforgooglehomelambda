@@ -92,7 +92,7 @@ type gUserEngagement struct {
 }
 
 type gUserPackageEntitlements struct {
-	Name *string `json:name",omitempty"`
+	Name *string `json:"name,omitempty"`
 }
 
 type gHome struct {
