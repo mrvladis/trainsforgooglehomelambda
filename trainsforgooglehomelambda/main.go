@@ -15,162 +15,11 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// Request Structure
-type requestSoapEnv struct {
-	XMLName      xml.Name      `xml:"soapenv:Envelope"`
-	XMLNsSoapEnv string        `xml:"xmlns:soapenv,attr"`
-	XMLNsTyp     string        `xml:"xmlns:typ,attr"`
-	XMLNsLDB     string        `xml:"xmlns:ldb,attr"`
-	Header       requestHeader `xml:"soapenv:Header"`
-	Body         requestBody   `xml:"soapenv:Body"`
-}
-
-type requestHeader struct {
-	AccessToken requestToken `xml:"typ:AccessToken"`
-}
-
-type requestToken struct {
-	TokenValue string `xml:"typ:TokenValue"`
-}
-
-type requestBody struct {
-	Ldb requestLdb `xml:"ldb:GetDepBoardWithDetailsRequest"`
-}
-
-type requestLdb struct {
-	NumRows    int    `xml:"ldb:numRows"`
-	Crs        string `xml:"ldb:crs"`
-	FilterCrs  string `xml:"ldb:filterCrs"`
-	FilterType string `xml:"ldb:filterType"`
-	TimeOffset int    `xml:"ldb:timeOffset"`
-	TimeWindow int    `xml:"ldb:timeWindow"`
-}
-
-// Response structure
-type responseSoapEnv struct {
-	XMLName xml.Name
-	Body    responseBody `xml:"Body"`
-}
-
-type responseBody struct {
-	XMLName                        xml.Name
-	GetDepBoardWithDetailsResponse responseBoardWithDetailsResponse `xml:"GetDepBoardWithDetailsResponse"`
-}
-
-type responseBoardWithDetailsResponse struct {
-	XMLName               xml.Name
-	GetStationBoardResult responseStationBoardResult `xml:"GetStationBoardResult"`
-}
-
-type responseStationBoardResult struct {
-	XMLName            xml.Name
-	GeneratedAt        string                `xml:"generatedAt"`
-	LocationName       string                `xml:"locationName"`
-	Crs                string                `xml:"crs"`
-	FilterLocationName string                `xml:"filterLocationName"`
-	Filtercrs          string                `xml:"filtercrs"`
-	PlatformAvailable  bool                  `xml:"platformAvailable"`
-	TrainServices      responseTrainServices `xml:"trainServices"`
-}
-
-type responseTrainServices struct {
-	XMLName xml.Name
-	Service []responseService `xml:"service"`
-}
-type responseService struct {
-	XMLName                 xml.Name
-	Std                     string                    `xml:"std"`
-	Etd                     string                    `xml:"etd"`
-	Platform                string                    `xml:"platform"`
-	Operator                string                    `xml:"operator"`
-	OperatorCode            string                    `xml:"operatorCode"`
-	ServiceType             string                    `xml:"serviceType"`
-	Length                  int                       `xml:"length"`
-	ServiceID               string                    `xml:"serviceID"`
-	Rsid                    string                    `xml:"rsid"`
-	Origin                  responseOrigin            `xml:"origin"`
-	Destination             responseOrigin            `xml:"destination"`
-	SubsequentCallingPoints responseCallingPointsList `xml:"subsequentCallingPoints"`
-	Other                   interface{}               `xml:",any"`
-}
-
-type responseCallingPointsList struct {
-	XMLName          xml.Name
-	CallingPointList responseCallingPoint `xml:"callingPointList"`
-}
-
-type responseCallingPoint struct {
-	XMLName      xml.Name
-	CallingPoint []responsePoint `xml:"callingPoint"`
-}
-
-type responsePoint struct {
-	XMLName      xml.Name
-	LocationName string `xml:"locationName"`
-	Crs          string `xml:"crs"`
-	St           string `xml:"st"`
-	Et           string `xml:"et"`
-	Length       int    `xml:"length"`
-}
-
-type responseOrigin struct {
-	Location responseLocation `xml:"location"`
-}
-
-type responseLocation struct {
-	XMLName      xml.Name
-	LocationName string `xml:"locationName"`
-	Crs          string `xml:"crs"`
-}
-
 //* Global Variables
 var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
 var awsRegion, secretName = os.Getenv("AWSRegion"), os.Getenv("secretName")
 var awsAccessKeyID, awsSecretAccessKey = os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY")
 var awsSessionToken = os.Getenv("AWS_SESSION_TOKEN")
-
-type soapenv struct {
-	XMLName xml.Name
-	Header  header
-	Body    body
-}
-
-type header struct {
-	AccessToken token `xml:"AccessToken"`
-}
-
-type token struct {
-	TokenValue string `xml:"TokenValue"`
-}
-
-type body struct {
-	Ldb ldb `xml:"GetDepBoardWithDetailsRequest"`
-}
-
-type ldb struct {
-	NumRows    int    `xml:"numRows"`
-	Crs        string `xml:"crs"`
-	FilterCrs  string `xml:"filterCrs"`
-	FilterType string `xml:"filterType"`
-	TimeOffset int    `xml:"timeOffset"`
-	TimeWindow int    `xml:"timeWindow"`
-}
-
-//Google Response Structure
-
-type googleResponse struct {
-	FulfillmentText string `json:"fulfillmentText"`
-}
-
-// Generic variables
-
-type appParams struct {
-	LdbwsToken       string `json:"LdbwsToken"`
-	LdbwsEndpoint    string `json:"Ldbwsendpoint"`
-	DestPreposition  string `json:"DestPreposition"`
-	SrcPreposition   string `json:"SrcPreposition"`
-	DefaultTimeFrame string `json:"DefaultTimeFrame"`
-}
 
 var requestTemplate = requestSoapEnv{
 	XMLNsSoapEnv: "http://schemas.xmlsoap.org/soap/envelope/",
@@ -194,7 +43,8 @@ var requestTemplate = requestSoapEnv{
 }
 
 var response, googleHomeMessage, message string
-var responseToGoogle googleResponse
+var responseToGoogle responseGoogleHome
+var requestFromGoogle requestGoogleHome
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch req.HTTPMethod {
@@ -206,9 +56,9 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		return clientError(http.StatusMethodNotAllowed)
 	}
 }
-func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	fmt.Println("Getting the Application Parameters")
-	fmt.Printf("Request Body: %v", request.Body)
+	fmt.Printf("Request Body: %v", gRequest.Body)
 	//Get the Application Parameters
 	secrets, err := getSecret()
 	if err != nil {
@@ -226,8 +76,16 @@ func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayPro
 		return clientError(http.StatusUnprocessableEntity)
 	}
 	fmt.Printf("Ldbws Endpoint:[ %s ] \n", ApplicationParameters.LdbwsEndpoint)
-	// Prepare request
+	// Check the incoming Google request
 
+	err = json.Unmarshal([]byte(gRequest.Body), &requestFromGoogle)
+	if err != nil {
+		fmt.Println("Couldn't unmarshal Application parameters")
+		return clientError(http.StatusUnprocessableEntity)
+	}
+	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
+
+	// Prepare request
 	fmt.Println("Preparing XML Soap Request")
 
 	requestTemplate.Header.AccessToken.TokenValue = ApplicationParameters.LdbwsToken
@@ -279,7 +137,7 @@ func processRequest(request events.APIGatewayProxyRequest) (events.APIGatewayPro
 		}
 	}
 
-	responseToGoogle.FulfillmentText = googleHomeMessage
+	responseToGoogle.Prompt.FirstSimple.Speech = googleHomeMessage
 	var buffer bytes.Buffer
 	json.NewEncoder(&buffer).Encode(&responseToGoogle)
 	reponseToGoogleBody, err := json.Marshal(responseToGoogle)
