@@ -137,7 +137,7 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 	fmt.Printf("There are %v trains", trainsCount)
 	fmt.Printf("Processing Trains Information")
 	if trainsCount > 0 {
-		googleHomeMessage = fmt.Sprintf("There are currently %v services scheduled from %v within the next %v minutes:\n", trainsCount, responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, ApplicationParameters.DefaultTimeFrame)
+		googleHomeMessage = fmt.Sprintln("There are currently", trainsCount, "services scheduled from", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, "within the next ", ApplicationParameters.DefaultTimeFrame, " minutes:")
 		for _, trainService := range currentServices {
 			if strings.EqualFold(trainService.Etd, "Cancelled") {
 				message = fmt.Sprintln(trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, "service has been", trainService.Etd)
@@ -148,16 +148,21 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 		}
 	}
 
-	responseToGoogle.Prompt.FirstSimple.Speech = &googleHomeMessage
+	var simpleR gSimple
+	var promptR gPrompt
+	simpleR.Speech = &googleHomeMessage
+	promptR.FirstSimple = &simpleR
+	responseToGoogle.Prompt = &promptR
+
 	var buffer bytes.Buffer
 	json.NewEncoder(&buffer).Encode(&responseToGoogle)
 	reponseToGoogleBody, err := json.Marshal(responseToGoogle)
-	fmt.Printf("Marshaled Json: %v", string(reponseToGoogleBody))
-	fmt.Printf("Encoded Json: %v", buffer.String())
 	if err != nil {
 		fmt.Println(err)
 		serverError(err)
 	}
+	fmt.Println("Marshaled Json:", string(reponseToGoogleBody))
+	fmt.Println("Encoded Json:", buffer.String())
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Body:       buffer.String(),

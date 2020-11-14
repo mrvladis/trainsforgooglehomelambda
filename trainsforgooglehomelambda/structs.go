@@ -114,24 +114,24 @@ type gMediaContext struct {
 // Response Google Structure
 
 type responseGoogleHome struct {
-	Prompt   *gPrompt  `json:"prompt,omitempty"`
-	Scene    gScene    `json:"scene,omitempty"`
-	Session  gSession  `json:"session,omitempty"`
-	User     gUser     `json:"user,omitempty"`
-	Home     gHome     `json:"home,omitempty"`
-	Device   gDevice   `json:"device,omitempty"`
-	Expected gExpected `json:"expected,omitempty"`
+	Prompt   *gPrompt   `json:"prompt,omitempty"`
+	Scene    *gScene    `json:"scene,omitempty"`
+	Session  gSession   `json:"session,omitempty"`
+	User     *gUser     `json:"user,omitempty"`
+	Home     *gHome     `json:"home,omitempty"`
+	Device   *gDevice   `json:"device,omitempty"`
+	Expected *gExpected `json:"expected,omitempty"`
 }
 
 type gPrompt struct {
-	Override    *bool          `json:"override,omitempty"`
-	FirstSimple gSimple        `json:"firstSimple,omitempty"`
-	Content     gContent       `json:"content,omitempty"`
-	LastSimple  gSimple        `json:"lastSimple,omitempty"`
-	Suggestions []gSuggestions `json:"suggestions,omitempty"`
-	Link        gLink          `json:"link,omitempty"`
-	Canvas      gCanvas        `json:"canvas,omitempty"`
-	OrderUpdate gOrderUpdate   `json:"orderUpdate,omitempty"`
+	Override    bool            `json:"override,omitempty"`
+	FirstSimple *gSimple        `json:"firstSimple,omitempty"`
+	Content     *gContent       `json:"content,omitempty"`
+	LastSimple  *gSimple        `json:"lastSimple,omitempty"`
+	Suggestions *[]gSuggestions `json:"suggestions,omitempty"`
+	Link        *gLink          `json:"link,omitempty"`
+	Canvas      *gCanvas        `json:"canvas,omitempty"`
+	OrderUpdate *gOrderUpdate   `json:"orderUpdate,omitempty"`
 }
 
 type gSimple struct {
@@ -140,12 +140,12 @@ type gSimple struct {
 }
 
 type gContent struct {
-	Card       *gCard      `json:"card,omitempty"`
-	Image      gImage      `json:"image,omitempty"`
-	Table      gTable      `json:"table,omitempty"`
-	Media      gMedia      `json:"media,omitempty"`
-	Collection gCollection `json:"collection,omitempty"`
-	List       gList       `json:"list,omitempty"`
+	Card       *gCard       `json:"card,omitempty"`
+	Image      *gImage      `json:"image,omitempty"`
+	Table      *gTable      `json:"table,omitempty"`
+	Media      *gMedia      `json:"media,omitempty"`
+	Collection *gCollection `json:"collection,omitempty"`
+	List       *gList       `json:"list,omitempty"`
 }
 
 type gCard struct {
