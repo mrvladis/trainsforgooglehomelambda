@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,6 +15,8 @@ var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
 var response, googleHomeMessage, message string
 var responseToGoogle responseGoogleHome
 var requestFromGoogle requestGoogleHome
+var simpleR gSimple
+var promptR gPrompt
 
 func main() {
 	gRequest := strings.TrimSpace(`{
@@ -70,6 +73,35 @@ func main() {
 	}`,
 	)
 
+	/* gResponse := strings.TrimSpace(`{
+		"session": {
+		  "id": "example_session_id",
+		  "params": {}
+		},
+		"prompt": {
+		  "override": false,
+		  "content": {
+			"card": {
+			  "title": "Card Title",
+			  "subtitle": "Card Subtitle",
+			  "text": "Card Content",
+			  "image": {
+				"alt": "Google Assistant logo",
+				"height": 0,
+				"url": "https://developers.google.com/assistant/assistant_96.png",
+				"width": 0
+			  }
+			}
+		  },
+		  "firstSimple": {
+			"speech": "This is a card rich response.",
+			"text": ""
+		  }
+		}
+	  }
+	`,
+	) */
+
 	fmt.Println("Getting the Application Parameters")
 	fmt.Printf("Request Body: %v", gRequest)
 	//Get the Application Parameters
@@ -84,5 +116,28 @@ func main() {
 		}
 
 	}
+	fmt.Println("Request Sucessfully unmarshalled")
+	fmt.Println("Unmarshalled object:", requestFromGoogle)
+	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
+	googleHomeMessage = fmt.Sprintln("There are currently services scheduled from  within the next  minutes:")
+
+	simpleR.Speech = &googleHomeMessage
+	promptR.FirstSimple = &simpleR
+	responseToGoogle.Prompt = &promptR
+
+	var buffer bytes.Buffer
+	json.NewEncoder(&buffer).Encode(&responseToGoogle)
+	reponseToGoogleBody, err := json.Marshal(responseToGoogle)
+	if err != nil {
+		fmt.Println("Couldn't marshal Google Response")
+		if ute, ok := err.(*json.UnmarshalTypeError); ok {
+			fmt.Printf("MarshalTypeError %v - %v - %v\n", ute.Value, ute.Type, ute.Offset)
+		} else {
+			fmt.Println("Other error:", err)
+		}
+
+	}
+	fmt.Println("Marshaled Json:", string(reponseToGoogleBody))
+	fmt.Println("Encoded Json:", buffer.String())
 
 }
