@@ -24,22 +24,42 @@ func main() {
 			"name": "TrainsCheck"
 		},
 		"intent": {
-			"name": "Trains_Check",
+			"name": "Initial_Train_Check",
 			"params": {
 				"transport": {
 					"original": "trains",
 					"resolved": "train"
 				},
-				"direction": {
+				"directionFrom": {
+					"original": "from",
+					"resolved": "from"
+				},
+				"stationFrom": {
+					"original": "Oakleigh Park",
+					"resolved": "Oakleigh Park"
+				},
+				"stationTo": {
+					"original": "Finsbury Park",
+					"resolved": "Finsbury Park"
+				},
+				"directionTo": {
 					"original": "to",
 					"resolved": "to"
 				},
-				"station": {
-					"original": "Kings Cross",
-					"resolved": "London Kings Cross"
+				"time": {
+					"original": "Wednesday at 3pm.",
+					"resolved": {
+						"month": 11,
+						"hours": 15,
+						"seconds": 0,
+						"year": 2020,
+						"nanos": 0,
+						"minutes": 0,
+						"day": 18
+					}
 				}
 			},
-			"query": "What about trains to Kings Cross?"
+			"query": "Tell me about trains from Oakleigh Park to Finsbury Park on Wednesday at 3pm."
 		},
 		"scene": {
 			"name": "actions.scene.START_CONVERSATION",
@@ -47,7 +67,7 @@ func main() {
 			"slots": {}
 		},
 		"session": {
-			"id": "ABwppHEu07ND12dZraO-vgejbGTQ1SIXAoEh_gXi0g1TLn2ZXsaK6E5k31f5E21AE0nzd-SJ-ca0-3v4cURmSVPUlsr0kw",
+			"id": "ABwppHG68SM0v1C4YxBwNSNG4j64PfVhK4EdFd69p4p6dRVN5cy_N1bejgOqZiFGQNPNAJ3yGTT8psYI83L49VvN7OWwzw",
 			"params": {},
 			"typeOverrides": [],
 			"languageCode": ""
@@ -58,7 +78,7 @@ func main() {
 			"accountLinkingStatus": "NOT_LINKED",
 			"verificationStatus": "VERIFIED",
 			"packageEntitlements": [],
-			"lastSeenTime": "2020-11-13T18:45:24Z"
+			"lastSeenTime": "2020-11-15T20:56:33Z"
 		},
 		"home": {
 			"params": {}
@@ -119,6 +139,18 @@ func main() {
 	fmt.Println("Request Sucessfully unmarshalled")
 	fmt.Println("Unmarshalled object:", requestFromGoogle)
 	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
+
+	if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
+
+	}
+	if requestStationFrom := requestFromGoogle.Intent.Params.StationFrom.Resolved; requestStationFrom != "" {
+
+	}
+	if requestTime := requestFromGoogle.Intent.Params.Time.Resolved; requestTime.Day != nil {
+
+	}
+	requestFromGoogle
+
 	googleHomeMessage = fmt.Sprintln("There are currently services scheduled from  within the next  minutes:")
 
 	simpleR.Speech = &googleHomeMessage
