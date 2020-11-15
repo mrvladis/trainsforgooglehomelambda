@@ -12,7 +12,7 @@ import (
 
 var db = dynamodb.New(session.New(), aws.NewConfig().WithRegion(awsRegion))
 
-func scanItems() (*[]appStation, error) {
+func scanStationCodes() (*[]appStation, error) {
 	fmt.Println("Preparign request for the StationCodes.")
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(applicationParameters.StationCodesStore),
@@ -55,17 +55,17 @@ func scanItems() (*[]appStation, error) {
 	return hab, nil
 }
 
-/* func getItem(habbitID string) (*habbit, error) {
-	fmt.Println("Preparign request for the habbit.")
+func getStation(stationName string) (*appStation, error) {
+	fmt.Println("Preparign request for the Station.")
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String("HabitTrackerBackend"),
+		TableName: aws.String(applicationParameters.StationCodesStore),
 		Key: map[string]*dynamodb.AttributeValue{
-			"id": {
-				S: aws.String(habbitID),
+			"StationName": {
+				S: aws.String(stationName),
 			},
 		},
 	}
-	fmt.Println("Sending the request for the habbit")
+	fmt.Println("Sending the request for the Station")
 	result, err := db.GetItem(input)
 	if err != nil {
 		return nil, err
@@ -74,17 +74,18 @@ func scanItems() (*[]appStation, error) {
 		return nil, nil
 	}
 
-	hab := new(habbit)
-	fmt.Println("Unmarshaling Result Map Sending the request for the habbit")
-	err = dynamodbattribute.UnmarshalMap(result.Item, hab)
+	station := new(appStation)
+	fmt.Println("Unmarshaling Result Map Sending the request for the Station")
+	err = dynamodbattribute.UnmarshalMap(result.Item, station)
 	if err != nil {
 		fmt.Printf("Erorr: %s", err)
 		return nil, err
 	}
 
-	return hab, nil
+	return station, nil
 }
 
+/*
 // Add a habbit record to DynamoDB.
 func putItem(hab *habbit) error {
 	input := &dynamodb.PutItemInput{
