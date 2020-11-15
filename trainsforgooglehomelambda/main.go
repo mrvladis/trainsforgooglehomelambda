@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -115,13 +114,10 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 func initialTrainCheck(requestFromGoogle requestGoogleHome) (events.APIGatewayProxyResponse, error) {
 	var buffer bytes.Buffer
 
-	requestSoap := requestTemplate
+	requestSoap, err := processGoogleRequest(requestFromGoogle)
 
-	requestSoap.Header.AccessToken.TokenValue = applicationParameters.LdbwsToken
-	requestSoap.Body.Ldb.FilterCrs = "FPK"
-	requestSoap.Body.Ldb.TimeWindow, err = strconv.Atoi(applicationParameters.DefaultTimeFrame)
 	if err != nil {
-		log.Fatal("Failed to convert applicationParameters.DefaultTimeFrame value to integer ", err.Error())
+		log.Fatal("Failed to process google Request ", err.Error())
 		return serverError(err)
 
 	}
