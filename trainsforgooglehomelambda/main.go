@@ -3,13 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,6 +18,7 @@ var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
 var awsRegion, secretName = os.Getenv("AWSRegion"), os.Getenv("secretName")
 var awsAccessKeyID, awsSecretAccessKey = os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY")
 var awsSessionToken = os.Getenv("AWS_SESSION_TOKEN")
+var applicationParameters appParams
 
 var requestTemplate = requestSoapEnv{
 	XMLNsSoapEnv: "http://schemas.xmlsoap.org/soap/envelope/",
@@ -42,8 +41,10 @@ var requestTemplate = requestSoapEnv{
 	},
 }
 
-var response, googleHomeMessage, message string
-var responseToGoogle responseGoogleHome
+var response string
+var err error
+
+//var responseToGoogle responseGoogleHome
 var requestFromGoogle requestGoogleHome
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -57,6 +58,8 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	}
 }
 func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var APIGatewayProxyResponse events.APIGatewayProxyResponse
+
 	fmt.Println("Getting the Application Parameters")
 	fmt.Printf("Request Body: %v", gRequest.Body)
 	//Get the Application Parameters
@@ -69,8 +72,8 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 		fmt.Println("Secrets  are empty")
 		return serverError(err)
 	}
-	ApplicationParameters := new(appParams)
-	err = json.Unmarshal([]byte(secrets), &ApplicationParameters)
+
+	err = json.Unmarshal([]byte(secrets), &applicationParameters)
 	if err != nil {
 		fmt.Println("Couldn't unmarshal Application parameters")
 		if ute, ok := err.(*json.UnmarshalTypeError); ok {
@@ -80,9 +83,10 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 		}
 		return clientError(http.StatusUnprocessableEntity)
 	}
-	fmt.Printf("Ldbws Endpoint:[ %s ] \n", ApplicationParameters.LdbwsEndpoint)
-	// Check the incoming Google request
+	fmt.Printf("Ldbws Endpoint:[ %s ] \n", applicationParameters.LdbwsEndpoint)
 
+	// Check the incoming Google request
+	//Unmarshall Googl request
 	err = json.Unmarshal([]byte(gRequest.Body), &requestFromGoogle)
 	if err != nil {
 		fmt.Println("Couldn't unmarshal Google Request")
@@ -94,67 +98,45 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 		return clientError(http.StatusUnprocessableEntity)
 
 	}
-	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
+	//Analysing the initial query
+	intentNameValue := *requestFromGoogle.Intent.Name
+	switch intentNameValue {
+	case "Initial_Train_Check":
+		fmt.Println("Performing intial train information request")
+		APIGatewayProxyResponse, err = initialTrainCheck(requestFromGoogle)
+	default:
+		return clientError(http.StatusMethodNotAllowed)
+	}
 
-	// Prepare request
-	fmt.Println("Preparing XML Soap Request")
+	return APIGatewayProxyResponse, err
 
-	requestTemplate.Header.AccessToken.TokenValue = ApplicationParameters.LdbwsToken
-	requestTemplate.Body.Ldb.FilterCrs = "FPK"
-	requestTemplate.Body.Ldb.TimeWindow, err = strconv.Atoi(ApplicationParameters.DefaultTimeFrame)
+}
+
+func initialTrainCheck(requestFromGoogle requestGoogleHome) (events.APIGatewayProxyResponse, error) {
+	var buffer bytes.Buffer
+
+	requestSoap := requestTemplate
+
+	requestSoap.Header.AccessToken.TokenValue = applicationParameters.LdbwsToken
+	requestSoap.Body.Ldb.FilterCrs = "FPK"
+	requestSoap.Body.Ldb.TimeWindow, err = strconv.Atoi(applicationParameters.DefaultTimeFrame)
 	if err != nil {
-		log.Fatal("Failed to convert ApplicationParameters.DefaultTimeFrame value to integer ", err.Error())
+		log.Fatal("Failed to convert applicationParameters.DefaultTimeFrame value to integer ", err.Error())
 		return serverError(err)
 
 	}
-	payload, err := xml.MarshalIndent(requestTemplate, "", "  ")
-	fmt.Println("Update")
-	fmt.Printf("%v", payload)
-	fmt.Println("Executing SOAP Request")
+	//
+	// Prepare request
+	responseXMLObject, err := getTrainsInformation(requestSoap)
 
-	response, err := executeSOAPRequest(payload, "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
 	if err != nil {
 		log.Fatal("Error on processing response. ", err.Error())
 		return serverError(err)
 
 	}
-	if response.StatusCode != 200 {
-		fmt.Printf("Request failed with the error code %v and error %v", response.StatusCode, response.Status)
-		return serverError(err)
-	}
 
-	responseXMLObject := new(responseSoapEnv)
-	err = xml.NewDecoder(response.Body).Decode(responseXMLObject)
-	if err != nil {
-		log.Fatal("Error on unmarshaling xml. ", err.Error())
-		return serverError(err)
-	}
-
-	fmt.Println("Preparing Result")
-	trainsCount := len(responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service)
-	fmt.Printf("There are %v trains", trainsCount)
-	currentServices := responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service
-	fmt.Printf("There are %v trains", trainsCount)
-	fmt.Printf("Processing Trains Information")
-	if trainsCount > 0 {
-		googleHomeMessage = fmt.Sprintln("There are currently", trainsCount, "services scheduled from", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, "within the next ", ApplicationParameters.DefaultTimeFrame, " minutes:")
-		for _, trainService := range currentServices {
-			if strings.EqualFold(trainService.Etd, "Cancelled") {
-				message = fmt.Sprintln(trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, "service has been", trainService.Etd)
-			} else {
-				message = fmt.Sprintln(trainService.Std, trainService.Operator, trainService.Destination.Location.LocationName, "service running", trainService.Etd, "formed of", trainService.Length, "coaches.")
-			}
-			googleHomeMessage += message
-		}
-	}
-
-	var simpleR gSimple
-	var promptR gPrompt
-	simpleR.Speech = &googleHomeMessage
-	promptR.FirstSimple = &simpleR
-	responseToGoogle.Prompt = &promptR
-
-	var buffer bytes.Buffer
+	responseToGoogle, err := prepareGoogleResponse(responseXMLObject)
+	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
 	json.NewEncoder(&buffer).Encode(&responseToGoogle)
 	reponseToGoogleBody, err := json.Marshal(responseToGoogle)
 	if err != nil {
