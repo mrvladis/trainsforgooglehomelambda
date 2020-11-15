@@ -10,16 +10,17 @@ import (
 func processGoogleRequest(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
 	requestSoap := requestTemplate
 	if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
+		fmt.Println("Target Station code lookup for station:", requestStationTo)
 		destinationStation, err := getStation(requestStationTo)
 		if err != nil {
 			log.Fatal("Failed to get the Destination Station details", err.Error())
 			return requestSoap, err
 		}
 		requestSoap.Body.Ldb.FilterCrs = destinationStation.CRS
-		fmt.Println("Target Station code identified as:", destinationStation.CRS)
+		fmt.Println("Target Station lookup for station:", destinationStation.CRS)
 	}
 	if requestStationFrom := requestFromGoogle.Intent.Params.StationFrom.Resolved; requestStationFrom != "" {
-
+		fmt.Println("Source Station code identified as:", requestStationFrom)
 		sourceStation, err := getStation(requestStationFrom)
 		if err != nil {
 			log.Fatal("Failed to get the Source Station details", err.Error())
