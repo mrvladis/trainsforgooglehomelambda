@@ -23,14 +23,29 @@ type gIntent struct {
 	Query  string        `json:"query,omitempty"`
 }
 type gIntentParams struct {
-	Direction *gIntentParameterValue `json:"direction,omitempty"`
-	Station   gIntentParameterValue  `json:"station,omitempty"`
-	Transport gIntentParameterValue  `json:"transport,omitempty"`
+	Transport   gIntentParameterValue     `json:"transport,omitempty"`
+	StationFrom *gIntentParameterValue    `json:"stationFrom,omitempty"`
+	StationTo   gIntentParameterValue     `json:"stationTo,omitempty"`
+	Time        gIntentTimeParameterValue `json:"time,omitempty"`
 }
 
 type gIntentParameterValue struct {
 	Original *string `json:"original,omitempty"`
 	Resolved string  `json:"resolved,omitempty"`
+}
+
+type gIntentTimeParameterValue struct {
+	Original *string       `json:"original,omitempty"`
+	Resolved gResolvedTime `json:"resolved,omitempty"`
+}
+type gResolvedTime struct {
+	Month   int `json:"month,omitempty"`
+	Hours   int `json:"hours,omitempty"`
+	Seconds int `json:"seconds,omitempty"`
+	Year    int `json:"year,omitempty"`
+	Nanos   int `json:"nanos,omitempty"`
+	Minutes int `json:"minutes,omitempty"`
+	Day     int `json:"day,omitempty"`
 }
 
 type gScene struct {

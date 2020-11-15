@@ -8,11 +8,30 @@ import (
 )
 
 func processGoogleRequest(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
-
 	requestSoap := requestTemplate
+	if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
+		destinationStation, err := getStation(requestStationTo)
+		if err != nil {
+			log.Fatal("Failed to get the Destination Station details", err.Error())
+			return requestSoap, err
+		}
+		requestSoap.Body.Ldb.FilterCrs = destinationStation.CRS
+		fmt.Println("Target Station code identified as:", destinationStation.CRS)
+	}
+	if requestStationFrom := requestFromGoogle.Intent.Params.StationFrom.Resolved; requestStationFrom != "" {
 
+		sourceStation, err := getStation(requestStationFrom)
+		if err != nil {
+			log.Fatal("Failed to get the Source Station details", err.Error())
+			return requestSoap, err
+		}
+		requestSoap.Body.Ldb.Crs = sourceStation.CRS
+		fmt.Println("Source Station code identified as:", sourceStation.CRS)
+	}
+	if requestTime := requestFromGoogle.Intent.Params.Time.Resolved; requestTime != nil {
+
+	}
 	requestSoap.Header.AccessToken.TokenValue = applicationParameters.LdbwsToken
-	requestSoap.Body.Ldb.FilterCrs = "FPK"
 	requestSoap.Body.Ldb.TimeWindow, err = strconv.Atoi(applicationParameters.DefaultTimeFrame)
 	if err != nil {
 		log.Fatal("Failed to convert applicationParameters.DefaultTimeFrame value to integer ", err.Error())
