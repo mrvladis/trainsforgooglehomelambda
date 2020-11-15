@@ -2,8 +2,25 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 	"strings"
 )
+
+func processGoogleRequest(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
+
+	requestSoap := requestTemplate
+
+	requestSoap.Header.AccessToken.TokenValue = applicationParameters.LdbwsToken
+	requestSoap.Body.Ldb.FilterCrs = "FPK"
+	requestSoap.Body.Ldb.TimeWindow, err = strconv.Atoi(applicationParameters.DefaultTimeFrame)
+	if err != nil {
+		log.Fatal("Failed to convert applicationParameters.DefaultTimeFrame value to integer ", err.Error())
+		return requestSoap, err
+
+	}
+	return requestSoap, nil
+}
 
 func prepareGoogleResponse(responseXMLObject *responseSoapEnv) (responseGoogleHome, error) {
 	var googleHomeMessage, message string
