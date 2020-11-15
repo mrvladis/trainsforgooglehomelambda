@@ -360,9 +360,16 @@ type ldb struct {
 // Generic variables
 
 type appParams struct {
-	LdbwsToken       string `json:"LdbwsToken"`
-	LdbwsEndpoint    string `json:"Ldbwsendpoint"`
-	DestPreposition  string `json:"DestPreposition"`
-	SrcPreposition   string `json:"SrcPreposition"`
-	DefaultTimeFrame string `json:"DefaultTimeFrame"`
+	LdbwsToken        string `json:"LdbwsToken"`
+	LdbwsEndpoint     string `json:"Ldbwsendpoint"`
+	DestPreposition   string `json:"DestPreposition"`
+	SrcPreposition    string `json:"SrcPreposition"`
+	DefaultTimeFrame  string `json:"DefaultTimeFrame"`
+	StationCodesStore string `json:"StationCodesStore"`
+}
+
+type appStation struct {
+	StationName    string `json:"StationName"`
+	StationAltName string `json:"StationAltName"`
+	CRS            string `json:"CRS"`
 }
