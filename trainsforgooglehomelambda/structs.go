@@ -25,7 +25,7 @@ type gIntent struct {
 type gIntentParams struct {
 	Transport   gIntentParameterValue      `json:"transport,omitempty"`
 	StationFrom *gIntentParameterValue     `json:"stationFrom,omitempty"`
-	StationTo   gIntentParameterValue      `json:"stationTo,omitempty"`
+	StationTo   *gIntentParameterValue     `json:"stationTo,omitempty"`
 	Time        *gIntentTimeParameterValue `json:"time,omitempty"`
 }
 
