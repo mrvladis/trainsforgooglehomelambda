@@ -9,28 +9,38 @@ import (
 
 func processGoogleRequest(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
 	requestSoap := requestTemplate
-	if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
-		fmt.Println("Target Station code lookup for station:", requestStationTo)
-		destinationStation, err := getStation(requestStationTo)
-		if err != nil {
-			log.Fatal("Failed to get the Destination Station details", err.Error())
-			return requestSoap, err
+	fmt.Println("Preparing to process StationTo Parameter, if available.")
+	if requestFromGoogle.Intent.Params.StationTo != nil {
+		if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
+			fmt.Println("Target Station code lookup for station:", requestStationTo)
+			destinationStation, err := getStation(requestStationTo)
+			if err != nil {
+				log.Fatal("Failed to get the Destination Station details", err.Error())
+				return requestSoap, err
+			}
+			requestSoap.Body.Ldb.FilterCrs = destinationStation.CRS
+			fmt.Println("Target Station code identified as:", destinationStation.CRS)
 		}
-		requestSoap.Body.Ldb.FilterCrs = destinationStation.CRS
-		fmt.Println("Target Station code identified as:", destinationStation.CRS)
 	}
-	if requestStationFrom := requestFromGoogle.Intent.Params.StationFrom.Resolved; requestStationFrom != "" {
-		fmt.Println("Source Station code lookup for station:", requestStationFrom)
-		sourceStation, err := getStation(requestStationFrom)
-		if err != nil {
-			log.Fatal("Failed to get the Source Station details", err.Error())
-			return requestSoap, err
+	fmt.Println("Preparing to process StationFrom Parameter, if available.")
+	if requestFromGoogle.Intent.Params.StationFrom != nil {
+		if requestStationFrom := requestFromGoogle.Intent.Params.StationFrom.Resolved; requestStationFrom != "" {
+			fmt.Println("Source Station code lookup for station:", requestStationFrom)
+			sourceStation, err := getStation(requestStationFrom)
+			if err != nil {
+				log.Fatal("Failed to get the Source Station details", err.Error())
+				return requestSoap, err
+			}
+			requestSoap.Body.Ldb.Crs = sourceStation.CRS
+			fmt.Println("Source Station code identified as:", sourceStation.CRS)
 		}
-		requestSoap.Body.Ldb.Crs = sourceStation.CRS
-		fmt.Println("Source Station code identified as:", sourceStation.CRS)
 	}
-	if requestTime := requestFromGoogle.Intent.Params.Time.Resolved; requestTime != nil {
-
+	fmt.Println("Preparing to process Time Parameter, if available.")
+	if requestFromGoogle.Intent.Params.Time != nil {
+		fmt.Println("Seems Time Parameter exist. Let's try to decouple...")
+		if requestTime := requestFromGoogle.Intent.Params.Time.Resolved; requestTime != nil {
+			fmt.Println("Request time exist")
+		}
 	}
 	requestSoap.Header.AccessToken.TokenValue = applicationParameters.LdbwsToken
 	requestSoap.Body.Ldb.TimeWindow, err = strconv.Atoi(applicationParameters.DefaultTimeFrame)
