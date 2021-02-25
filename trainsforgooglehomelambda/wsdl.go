@@ -49,16 +49,18 @@ func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) 
 	response, err := executeSOAPRequest(payload, "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
 
 	if err != nil {
+		fmt.Printf("Request failed with the error %v", err.Error())
 		log.Fatal("Error on processing response. ", err.Error())
 
 	}
 	if response.StatusCode != 200 {
-		fmt.Printf("Request failed with the error code %v and error %v", response.StatusCode, response.Status)
+		fmt.Printf("HTTP Request returned the following error code %v and error %v", response.StatusCode, response.Status)
 	}
 
 	responseXMLObject := new(responseSoapEnv)
 	err = xml.NewDecoder(response.Body).Decode(responseXMLObject)
 	if err != nil {
+		fmt.Printf("Unmarshaling xml failed with the error %v", err.Error())
 		log.Fatal("Error on unmarshaling xml. ", err.Error())
 	}
 	println("Response received from the LDBWS:", responseXMLObject)
