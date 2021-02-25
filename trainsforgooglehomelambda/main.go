@@ -128,7 +128,6 @@ func initialTrainCheck(requestFromGoogle requestGoogleHome) (events.APIGatewayPr
 	if err != nil {
 		log.Fatal("Error on processing response. ", err.Error())
 		return serverError(err)
-
 	}
 
 	responseToGoogle, err := prepareGoogleResponse(responseXMLObject)
