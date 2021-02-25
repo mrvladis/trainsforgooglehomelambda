@@ -9,6 +9,7 @@ import (
 
 func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
 	requestSoap := requestTemplate
+	fmt.Println("Initial Saop request body", requestSoap)
 	fmt.Println("Preparing to process StationTo Parameter, if available.")
 	if requestFromGoogle.Intent.Params.StationTo != nil {
 		if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
@@ -20,6 +21,7 @@ func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv,
 			}
 			requestSoap.Body.Ldb.FilterCrs = destinationStation.CRS
 			fmt.Println("Target Station code identified as:", destinationStation.CRS)
+			fmt.Println("Updated Saop request body", requestSoap)
 		}
 	}
 	fmt.Println("Preparing to process StationFrom Parameter, if available.")
@@ -33,6 +35,7 @@ func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv,
 			}
 			requestSoap.Body.Ldb.Crs = sourceStation.CRS
 			fmt.Println("Source Station code identified as:", sourceStation.CRS)
+			fmt.Println("Updated Saop request body", requestSoap)
 		}
 	}
 	fmt.Println("Preparing to process Time Parameter, if available.")
@@ -49,6 +52,7 @@ func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv,
 		return requestSoap, err
 
 	}
+	fmt.Println("Produced Saop request body", requestSoap)
 	return requestSoap, nil
 }
 
