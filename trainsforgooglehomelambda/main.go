@@ -129,7 +129,7 @@ func initialTrainCheck(requestFromGoogle requestGoogleHome) (events.APIGatewayPr
 		log.Fatal("Error on processing response. ", err.Error())
 		return serverError(err)
 	}
-
+	fmt.Println("LDBWS response received:", responseXMLObject)
 	responseToGoogle, err := prepareGoogleResponse(responseXMLObject)
 	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
 	json.NewEncoder(&buffer).Encode(&responseToGoogle)
