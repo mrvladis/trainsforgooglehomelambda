@@ -39,11 +39,11 @@ func executeSOAPRequest(payload []byte, url string) (*http.Response, error) {
 
 func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) {
 
-	fmt.Println("Preparing XML Soap Request")
+	fmt.Println("Preparing XML Soap Request", requestSoap)
 
 	payload, err := xml.MarshalIndent(requestSoap, "", "  ")
-	fmt.Println("Update")
-	fmt.Printf("%v", payload)
+	// fmt.Println("Update")
+	// fmt.Printf("%v", payload)
 	fmt.Println("Executing SOAP Request")
 
 	response, err := executeSOAPRequest(payload, "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
