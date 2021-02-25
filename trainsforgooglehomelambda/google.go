@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func processGoogleRequest(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
+func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
 	requestSoap := requestTemplate
 	fmt.Println("Preparing to process StationTo Parameter, if available.")
 	if requestFromGoogle.Intent.Params.StationTo != nil {

@@ -61,7 +61,7 @@ func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) 
 	if err != nil {
 		log.Fatal("Error on unmarshaling xml. ", err.Error())
 	}
-
+	println("Response received from the LDBWS:", responseXMLObject)
 	return responseXMLObject, err
 
 }
