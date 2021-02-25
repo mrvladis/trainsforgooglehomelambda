@@ -114,7 +114,7 @@ func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayPr
 func initialTrainCheck(requestFromGoogle requestGoogleHome) (events.APIGatewayProxyResponse, error) {
 	var buffer bytes.Buffer
 
-	requestSoap, err := processGoogleRequest(requestFromGoogle)
+	requestSoap, err := requestToNationalRail(requestFromGoogle)
 
 	if err != nil {
 		log.Fatal("Failed to process google Request ", err.Error())
