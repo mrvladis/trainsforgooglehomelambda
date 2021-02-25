@@ -1,15 +1,23 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 )
 
-func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
+func prepareRequestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
 	requestSoap := requestTemplate
-	fmt.Println("Initial Saop request body", requestSoap)
+	fmt.Println("Initial Saop request body")
+	output, err := xml.MarshalIndent(requestSoap, "  ", "    ")
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+	os.Stdout.Write(output)
+	fmt.Println()
 	fmt.Println("Preparing to process StationTo Parameter, if available.")
 	if requestFromGoogle.Intent.Params.StationTo != nil {
 		if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
@@ -35,7 +43,6 @@ func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv,
 			}
 			requestSoap.Body.Ldb.Crs = sourceStation.CRS
 			fmt.Println("Source Station code identified as:", sourceStation.CRS)
-			fmt.Println("Updated Saop request body", requestSoap)
 		}
 	}
 	fmt.Println("Preparing to process Time Parameter, if available.")
@@ -47,12 +54,19 @@ func requestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv,
 	}
 	requestSoap.Header.AccessToken.TokenValue = applicationParameters.LdbwsToken
 	requestSoap.Body.Ldb.TimeWindow, err = strconv.Atoi(applicationParameters.DefaultTimeFrame)
+	fmt.Println("Prepared Saop request body")
+	output, err = xml.MarshalIndent(requestSoap, "  ", "    ")
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+	os.Stdout.Write(output)
+	fmt.Println()
+
 	if err != nil {
 		log.Fatal("Failed to convert applicationParameters.DefaultTimeFrame value to integer ", err.Error())
 		return requestSoap, err
 
 	}
-	fmt.Println("Produced Saop request body", requestSoap)
 	return requestSoap, nil
 }
 
