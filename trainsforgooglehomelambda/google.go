@@ -31,6 +31,8 @@ func prepareRequestToNationalRail(requestFromGoogle requestGoogleHome) (requestS
 			fmt.Println("Target Station code identified as:", destinationStation.CRS)
 			fmt.Println("Updated Saop request body", requestSoap)
 		}
+	} else {
+		requestSoap.Body.Ldb.FilterCrs = ""
 	}
 	fmt.Println("Preparing to process StationFrom Parameter, if available.")
 	if requestFromGoogle.Intent.Params.StationFrom != nil {

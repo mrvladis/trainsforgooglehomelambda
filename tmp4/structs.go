@@ -257,12 +257,12 @@ type requestBody struct {
 }
 
 type requestLdb struct {
-	NumRows    int    `xml:"ldb:numRows"`
-	Crs        string `xml:"ldb:crs"`
-	FilterCrs  string `xml:"ldb:filterCrs"`
-	FilterType string `xml:"ldb:filterType"`
-	TimeOffset int    `xml:"ldb:timeOffset"`
-	TimeWindow int    `xml:"ldb:timeWindow"`
+	NumRows    int    `xml:"ldb:numRows,omitempty"`
+	Crs        string `xml:"ldb:crs,omitempty"`
+	FilterCrs  string `xml:"ldb:filterCrs,omitempty"`
+	FilterType string `xml:"ldb:filterType,omitempty"`
+	TimeOffset int    `xml:"ldb:timeOffset,omitempty"`
+	TimeWindow int    `xml:"ldb:timeWindow,omitempty"`
 }
 type gSuggestions struct {
 	Title string `json:"title"`
