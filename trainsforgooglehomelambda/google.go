@@ -99,8 +99,9 @@ func prepareGoogleResponse(responseXMLObject *responseSoapEnv) (responseGoogleHo
 		googleHomeMessage = fmt.Sprintln("There are currently", trainsCount, "services scheduled from", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, "within the next ", applicationParameters.DefaultTimeFrame, " minutes:")
 	}
 	if len(responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message) > 0 {
-		fmt.Println("Thre is a message on the board: ", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message)
-		googleHomeMessage += responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message
+		fmt.Println("There is a message on the board: ", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message)
+		googleHomeMessage += "There is a message on the board: "
+		googleHomeMessage += strings.ReplaceAll(strings.ReplaceAll(responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message, "<P>", ""), "</P>", "")
 	}
 	simpleR.Speech = &googleHomeMessage
 	promptR.FirstSimple = &simpleR

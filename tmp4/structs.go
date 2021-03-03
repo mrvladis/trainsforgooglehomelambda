@@ -257,12 +257,12 @@ type requestBody struct {
 }
 
 type requestLdb struct {
-	NumRows    int    `xml:"ldb:numRows,omitempty"`
-	Crs        string `xml:"ldb:crs,omitempty"`
-	FilterCrs  string `xml:"ldb:filterCrs,omitempty"`
-	FilterType string `xml:"ldb:filterType,omitempty"`
-	TimeOffset int    `xml:"ldb:timeOffset,omitempty"`
-	TimeWindow int    `xml:"ldb:timeWindow,omitempty"`
+	NumRows    int    `xml:"ldb:numRows"`
+	Crs        string `xml:"ldb:crs"`
+	FilterCrs  string `xml:"ldb:filterCrs"`
+	FilterType string `xml:"ldb:filterType"`
+	TimeOffset int    `xml:"ldb:timeOffset"`
+	TimeWindow int    `xml:"ldb:timeWindow"`
 }
 type gSuggestions struct {
 	Title string `json:"title"`
@@ -291,10 +291,14 @@ type responseStationBoardResult struct {
 	Crs                string                `xml:"crs"`
 	FilterLocationName string                `xml:"filterLocationName"`
 	Filtercrs          string                `xml:"filtercrs"`
+	NrccMessages       responseNrccMessages  `xml:"nrccMessages,omitempty"`
 	PlatformAvailable  bool                  `xml:"platformAvailable"`
 	TrainServices      responseTrainServices `xml:"trainServices"`
 }
 
+type responseNrccMessages struct {
+	Message string `xml:"message,omitempty"`
+}
 type responseTrainServices struct {
 	XMLName xml.Name
 	Service []responseService `xml:"service"`
