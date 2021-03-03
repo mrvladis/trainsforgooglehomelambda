@@ -1,5 +1,6 @@
 trainsforgooglehomelambda/main
 tmp/*
 tmp2/*
-tmp/tmp.go
+tmp/*
 env.json
+tmp4/*

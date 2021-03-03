@@ -291,10 +291,14 @@ type responseStationBoardResult struct {
 	Crs                string                `xml:"crs"`
 	FilterLocationName string                `xml:"filterLocationName"`
 	Filtercrs          string                `xml:"filtercrs"`
+	NrccMessages       responseNrccMessages  `xml:"nrccMessages,omitempty"`
 	PlatformAvailable  bool                  `xml:"platformAvailable"`
 	TrainServices      responseTrainServices `xml:"trainServices"`
 }
 
+type responseNrccMessages struct {
+	Message string `xml:"message,omitempty"`
+}
 type responseTrainServices struct {
 	XMLName xml.Name
 	Service []responseService `xml:"service"`

@@ -68,7 +68,6 @@ func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) 
 		fmt.Printf("Unmarshaling xml failed with the error %v", err.Error())
 		log.Fatal("Error on unmarshaling xml. ", err.Error())
 	}
-	println("Response received from the LDBWS:", responseXMLObject)
 	return responseXMLObject, err
 
 }
