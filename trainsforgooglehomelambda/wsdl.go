@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 func executeSOAPRequest(payload []byte, url string) (*http.Response, error) {
@@ -42,6 +43,10 @@ func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) 
 	fmt.Println("Preparing XML Soap Request", requestSoap)
 
 	payload, err := xml.MarshalIndent(requestSoap, "", "  ")
+	fmt.Println("Payload to be send:")
+	os.Stdout.Write(payload)
+	fmt.Println()
+
 	// fmt.Println("Update")
 	// fmt.Printf("%v", payload)
 	fmt.Println("Executing SOAP Request")
@@ -63,7 +68,6 @@ func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) 
 		fmt.Printf("Unmarshaling xml failed with the error %v", err.Error())
 		log.Fatal("Error on unmarshaling xml. ", err.Error())
 	}
-	println("Response received from the LDBWS:", responseXMLObject)
 	return responseXMLObject, err
 
 }

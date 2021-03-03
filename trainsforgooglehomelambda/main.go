@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"log"
 	"net/http"
@@ -129,9 +130,19 @@ func initialTrainCheck(requestFromGoogle requestGoogleHome) (events.APIGatewayPr
 		log.Fatal("Error on processing response. ", err.Error())
 		return serverError(err)
 	}
-	fmt.Println("LDBWS response received:", responseXMLObject)
+	fmt.Println("LDBWS response received:")
+	output, err := xml.MarshalIndent(responseXMLObject, "  ", "    ")
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+	os.Stdout.Write(output)
+	fmt.Println()
+
+	fmt.Println("Preparing Reponse to Google")
 	responseToGoogle, err := prepareGoogleResponse(responseXMLObject)
+	fmt.Println("Updating Google Response Session ID")
 	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
+	fmt.Println("Encoding Google Response into JSON")
 	json.NewEncoder(&buffer).Encode(&responseToGoogle)
 	reponseToGoogleBody, err := json.Marshal(responseToGoogle)
 	if err != nil {

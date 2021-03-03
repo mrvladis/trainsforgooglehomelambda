@@ -81,10 +81,10 @@ func prepareGoogleResponse(responseXMLObject *responseSoapEnv) (responseGoogleHo
 	fmt.Println("Preparing Result")
 	trainsCount := len(responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service)
 	fmt.Printf("There are %v trains", trainsCount)
-	currentServices := responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service
-	fmt.Printf("There are %v trains", trainsCount)
-	fmt.Printf("Processing Trains Information")
+	fmt.Println()
 	if trainsCount > 0 {
+		currentServices := responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.TrainServices.Service
+		fmt.Println("Processing Trains Information")
 		googleHomeMessage = fmt.Sprintln("There are currently", trainsCount, "services scheduled from", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, "within the next ", applicationParameters.DefaultTimeFrame, " minutes:")
 		for _, trainService := range currentServices {
 			if strings.EqualFold(trainService.Etd, "Cancelled") {
@@ -94,8 +94,14 @@ func prepareGoogleResponse(responseXMLObject *responseSoapEnv) (responseGoogleHo
 			}
 			googleHomeMessage += message
 		}
-	}
 
+	} else {
+		googleHomeMessage = fmt.Sprintln("There are currently", trainsCount, "services scheduled from", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.LocationName, "within the next ", applicationParameters.DefaultTimeFrame, " minutes:")
+	}
+	if len(responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message) > 0 {
+		fmt.Println("Thre is a message on the board: ", responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message)
+		googleHomeMessage += responseXMLObject.Body.GetDepBoardWithDetailsResponse.GetStationBoardResult.NrccMessages.Message
+	}
 	simpleR.Speech = &googleHomeMessage
 	promptR.FirstSimple = &simpleR
 	responseToGoogle.Prompt = &promptR
