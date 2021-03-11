@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -9,7 +10,7 @@ import (
 	"strings"
 )
 
-func prepareRequestToNationalRail(requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
+func prepareRequestToNationalRail(ctx context.Context, requestFromGoogle requestGoogleHome) (requestSoapEnv, error) {
 	requestSoap := requestTemplate
 	fmt.Println("Initial Saop request body")
 	output, err := xml.MarshalIndent(requestSoap, "  ", "    ")
@@ -22,7 +23,7 @@ func prepareRequestToNationalRail(requestFromGoogle requestGoogleHome) (requestS
 	if requestFromGoogle.Intent.Params.StationTo != nil {
 		if requestStationTo := requestFromGoogle.Intent.Params.StationTo.Resolved; requestStationTo != "" {
 			fmt.Println("Target Station code lookup for station:", requestStationTo)
-			destinationStation, err := getStation(requestStationTo)
+			destinationStation, err := getStation(ctx, requestStationTo)
 			if err != nil {
 				log.Fatal("Failed to get the Destination Station details", err.Error())
 				return requestSoap, err
@@ -38,7 +39,7 @@ func prepareRequestToNationalRail(requestFromGoogle requestGoogleHome) (requestS
 	if requestFromGoogle.Intent.Params.StationFrom != nil {
 		if requestStationFrom := requestFromGoogle.Intent.Params.StationFrom.Resolved; requestStationFrom != "" {
 			fmt.Println("Source Station code lookup for station:", requestStationFrom)
-			sourceStation, err := getStation(requestStationFrom)
+			sourceStation, err := getStation(ctx, requestStationFrom)
 			if err != nil {
 				log.Fatal("Failed to get the Source Station details", err.Error())
 				return requestSoap, err

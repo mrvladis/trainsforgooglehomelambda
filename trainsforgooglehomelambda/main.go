@@ -104,7 +104,7 @@ func processRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest)
 	switch intentNameValue {
 	case "Initial_Train_Check":
 		fmt.Println("Performing intial train information request")
-		APIGatewayProxyResponse, err = initialTrainCheck(requestFromGoogle)
+		APIGatewayProxyResponse, err = initialTrainCheck(ctx, requestFromGoogle)
 	default:
 		return clientError(http.StatusMethodNotAllowed)
 	}
@@ -113,10 +113,10 @@ func processRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest)
 
 }
 
-func initialTrainCheck(requestFromGoogle requestGoogleHome) (events.APIGatewayProxyResponse, error) {
+func initialTrainCheck(ctx context.Context, requestFromGoogle requestGoogleHome) (events.APIGatewayProxyResponse, error) {
 	var buffer bytes.Buffer
 
-	requestSoap, err := prepareRequestToNationalRail(requestFromGoogle)
+	requestSoap, err := prepareRequestToNationalRail(ctx, requestFromGoogle)
 
 	if err != nil {
 		log.Fatal("Failed to process google Request ", err.Error())
