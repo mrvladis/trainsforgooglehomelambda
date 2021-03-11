@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,13 +13,13 @@ import (
 
 var db = dynamodb.New(session.New(), aws.NewConfig().WithRegion(awsRegion))
 
-func scanStationCodes() (*[]appStation, error) {
+func scanStationCodes(ctx context.Context) (*[]appStation, error) {
 	fmt.Println("Preparign request for the StationCodes.")
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(applicationParameters.StationCodesStore),
 	}
 	fmt.Println("Sending the request for the StationCodes")
-	result, err := db.Scan(input)
+	result, err := db.ScanWithContext(ctx, input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
@@ -55,7 +56,7 @@ func scanStationCodes() (*[]appStation, error) {
 	return hab, nil
 }
 
-func getStation(stationName string) (*appStation, error) {
+func getStation(ctx context.Context, stationName string) (*appStation, error) {
 	fmt.Println("Preparign request for the Station.")
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(applicationParameters.StationCodesStore),
@@ -66,7 +67,7 @@ func getStation(stationName string) (*appStation, error) {
 		},
 	}
 	fmt.Println("Sending the request for the Station")
-	result, err := db.GetItem(input)
+	result, err := db.GetItemWithContext(ctx, input)
 	if err != nil {
 		return nil, err
 	}
