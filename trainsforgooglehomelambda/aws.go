@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 
@@ -8,14 +9,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
-func getSecret() (string, error) {
+func getSecret(ctx context.Context) (string, error) {
 	//https://docs.aws.amazon.com/sdk-for-go/api/service/secretsmanager/
 	fmt.Println("Preparing Secret input")
 	//Create a Secrets Manager client
 	svc := secretsmanager.New(session.New(),
 		aws.NewConfig().WithRegion(awsRegion))
+	xray.AWS(svc.Client)
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secretName),
 		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified

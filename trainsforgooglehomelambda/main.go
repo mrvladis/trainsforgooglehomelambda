@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -47,23 +48,23 @@ var err error
 //var responseToGoogle responseGoogleHome
 var requestFromGoogle requestGoogleHome
 
-func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch req.HTTPMethod {
 	case "GET":
-		return processRequest(req)
+		return processRequest(ctx, req)
 		/* 	case "POST":
 		return create(req) */
 	default:
 		return clientError(http.StatusMethodNotAllowed)
 	}
 }
-func processRequest(gRequest events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func processRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var APIGatewayProxyResponse events.APIGatewayProxyResponse
 
 	fmt.Println("Getting the Application Parameters")
 	fmt.Printf("Request Body: %v", gRequest.Body)
 	//Get the Application Parameters
-	secrets, err := getSecret()
+	secrets, err := getSecret(ctx)
 	if err != nil {
 		fmt.Printf("Coudn't retreive Secrets")
 		return serverError(err)

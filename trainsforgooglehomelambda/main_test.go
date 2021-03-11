@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 
 func Test_router(t *testing.T) {
 	type args struct {
+		ctx context.Context
 		req events.APIGatewayProxyRequest
 	}
 	tests := []struct {
@@ -21,7 +23,7 @@ func Test_router(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := router(tt.args.req)
+			got, err := router(tt.args.ctx, tt.args.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("router() error = %v, wantErr %v", err, tt.wantErr)
 				return
