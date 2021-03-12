@@ -105,7 +105,7 @@ func putGoogleRequest(ctx context.Context, gRequest events.APIGatewayProxyReques
 	err := seg.AddMetadata("AWSService", "DynamoDB")
 	xray.AWS(db.Client)
 
-	attibutes, err := dynamodbattribute.MarshalMap(gRequest)
+	attibutes, err := dynamodbattribute.MarshalMap(gRequest.Body)
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String("TrainsRequests"),
 		Item:      attibutes,
