@@ -44,7 +44,8 @@ func executeSOAPRequest(ctx context.Context, payload []byte, url string) (*http.
 func getTrainsInformation(ctx context.Context, requestSoap requestSoapEnv) (*responseSoapEnv, error) {
 
 	fmt.Println("Preparing XML Soap Request", requestSoap)
-
+	ctx, seg := xray.BeginSubsegment(ctx, "NationalRailLDBWS")
+	err := seg.AddMetadata("url", "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
 	payload, err := xml.MarshalIndent(requestSoap, "", "  ")
 	fmt.Println("Payload to be send:")
 	os.Stdout.Write(payload)
@@ -71,6 +72,7 @@ func getTrainsInformation(ctx context.Context, requestSoap requestSoapEnv) (*res
 		fmt.Printf("Unmarshaling xml failed with the error %v", err.Error())
 		log.Fatal("Error on unmarshaling xml. ", err.Error())
 	}
+	seg.Close(err)
 	return responseXMLObject, err
 
 }
