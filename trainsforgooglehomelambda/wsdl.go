@@ -44,7 +44,7 @@ func executeSOAPRequest(ctx context.Context, payload []byte, url string) (*http.
 func getTrainsInformation(ctx context.Context, requestSoap requestSoapEnv) (*responseSoapEnv, error) {
 
 	fmt.Println("Preparing XML Soap Request", requestSoap)
-	ctx, seg := xray.BeginSubsegment(ctx, "NationalRailLDBWS")
+	ctx, seg := xray.BeginSubsegment(ctx, "Getting Data from the NationalRailLDBWS")
 	err := seg.AddMetadata("url", "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
 	payload, err := xml.MarshalIndent(requestSoap, "", "  ")
 	fmt.Println("Payload to be send:")
