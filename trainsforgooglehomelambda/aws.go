@@ -14,6 +14,8 @@ import (
 
 func getSecret(ctx context.Context) (string, error) {
 	//https://docs.aws.amazon.com/sdk-for-go/api/service/secretsmanager/
+	ctx, seg := xray.BeginSubsegment(ctx, "GettingSecrets")
+	err := seg.AddMetadata("AWSService", "AWS Secret Manager")
 	fmt.Println("Preparing Secret input")
 	//Create a Secrets Manager client
 	svc := secretsmanager.New(session.New(),
@@ -76,6 +78,7 @@ func getSecret(ctx context.Context) (string, error) {
 	}
 	decodedBinarySecret = string(decodedBinarySecretBytes[:len])
 	//fmt.Printf("My Super Secret decoded Password %s \n", decodedBinarySecret)
+	seg.Close(err)
 	return decodedBinarySecret, nil
 
 }
