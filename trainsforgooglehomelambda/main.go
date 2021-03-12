@@ -63,6 +63,8 @@ func processRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest)
 
 	fmt.Println("Getting the Application Parameters")
 	fmt.Printf("Request Body: %v", gRequest.Body)
+	fmt.Println("Storing Request to DocumentDB")
+	putGoogleRequest(ctx, gRequest)
 	//Get the Application Parameters
 	secrets, err := getSecret(ctx)
 	if err != nil {
