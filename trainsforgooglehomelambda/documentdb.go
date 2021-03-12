@@ -63,9 +63,9 @@ func scanStationCodes(ctx context.Context) (*[]appStation, error) {
 
 func getStation(ctx context.Context, stationName string) (*appStation, error) {
 	fmt.Println("Preparign request for the Station.")
-	xray.AWS(db.Client)
 	ctx, seg := xray.BeginSubsegment(ctx, "Getting Station Code")
 	err := seg.AddMetadata("AWSService", "DynamoDB")
+	xray.AWS(db.Client)
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(applicationParameters.StationCodesStore),
 		Key: map[string]*dynamodb.AttributeValue{
