@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
 func executeSOAPRequest(ctx context.Context, payload []byte, url string) (*http.Response, error) {
@@ -22,13 +24,13 @@ func executeSOAPRequest(ctx context.Context, payload []byte, url string) (*http.
 
 	req.Header.Set("Content-type", "text/xml")
 
-	client := &http.Client{
+	client := xray.Client(&http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
 		},
-	}
+	})
 
 	res, err := client.Do(req)
 	if err != nil {
