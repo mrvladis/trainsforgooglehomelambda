@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/xml"
 	"fmt"
@@ -10,10 +11,10 @@ import (
 	"os"
 )
 
-func executeSOAPRequest(payload []byte, url string) (*http.Response, error) {
+func executeSOAPRequest(ctx context.Context, payload []byte, url string) (*http.Response, error) {
 
 	httpMethod := "POST"
-	req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+	req, err := http.NewRequestWithContext(ctx, httpMethod, url, bytes.NewReader(payload))
 	if err != nil {
 		log.Fatal("Error on creating request object. ", err.Error())
 		return nil, err
@@ -38,7 +39,7 @@ func executeSOAPRequest(payload []byte, url string) (*http.Response, error) {
 	return res, nil
 }
 
-func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) {
+func getTrainsInformation(ctx context.Context, requestSoap requestSoapEnv) (*responseSoapEnv, error) {
 
 	fmt.Println("Preparing XML Soap Request", requestSoap)
 
@@ -51,7 +52,7 @@ func getTrainsInformation(requestSoap requestSoapEnv) (*responseSoapEnv, error) 
 	// fmt.Printf("%v", payload)
 	fmt.Println("Executing SOAP Request")
 
-	response, err := executeSOAPRequest(payload, "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
+	response, err := executeSOAPRequest(ctx, payload, "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/ldb11.asmx")
 
 	if err != nil {
 		fmt.Printf("Request failed with the error %v", err.Error())

@@ -125,7 +125,7 @@ func initialTrainCheck(ctx context.Context, requestFromGoogle requestGoogleHome)
 	}
 	//
 	// Prepare request
-	responseXMLObject, err := getTrainsInformation(requestSoap)
+	responseXMLObject, err := getTrainsInformation(ctx, requestSoap)
 
 	if err != nil {
 		log.Fatal("Error on processing response. ", err.Error())
