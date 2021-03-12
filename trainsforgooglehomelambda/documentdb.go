@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -97,25 +98,19 @@ func getStation(ctx context.Context, stationName string) (*appStation, error) {
 	return station, nil
 }
 
-/*
 // Add a habbit record to DynamoDB.
-func putItem(hab *habbit) error {
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String("habbits"),
-		Item: map[string]*dynamodb.AttributeValue{
-			"id": {
-				S: aws.String(hab.ID),
-			},
-			"habitName": {
-				S: aws.String(hab.HabitName),
-			},
-			"habitCategory": {
-				S: aws.String(hab.HabitCategory),
-			},
-		},
-	}
+func putGoogleRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest) error {
+	fmt.Println("Saving Google Request")
+	ctx, seg := xray.BeginSubsegment(ctx, "Saving Google Request")
+	err := seg.AddMetadata("AWSService", "DynamoDB")
+	xray.AWS(db.Client)
 
-	_, err := db.PutItem(input)
+	attibutes, err := dynamodbattribute.MarshalMap(gRequest)
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String("TrainsRequests"),
+		Item:      attibutes,
+	}
+	_, err = db.PutItemWithContext(ctx, input)
+	seg.Close(err)
 	return err
 }
-*/
