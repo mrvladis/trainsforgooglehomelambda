@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 //* Global Variables
@@ -127,6 +129,7 @@ func main() {
 	//Get the Application Parameters
 
 	err := json.Unmarshal([]byte(gRequest), &requestFromGoogle)
+
 	if err != nil {
 		fmt.Println("Couldn't unmarshal Google Request")
 		if ute, ok := err.(*json.UnmarshalTypeError); ok {
@@ -136,6 +139,9 @@ func main() {
 		}
 
 	}
+
+	attibutes, err := dynamodbattribute.MarshalMap(requestFromGoogle)
+	fmt.Println("att:", attibutes)
 	fmt.Println("Request Sucessfully unmarshalled")
 	fmt.Println("Unmarshalled object:", requestFromGoogle)
 	responseToGoogle.Session.ID = requestFromGoogle.Session.ID
@@ -146,10 +152,9 @@ func main() {
 	if requestStationFrom := requestFromGoogle.Intent.Params.StationFrom.Resolved; requestStationFrom != "" {
 
 	}
-	if requestTime := requestFromGoogle.Intent.Params.Time.Resolved; requestTime.Day != nil {
+	/* 	if requestTime := requestFromGoogle.Intent.Params.Time.Resolved; requestTime.Day != nil {
 
-	}
-	requestFromGoogle
+	   	} */
 
 	googleHomeMessage = fmt.Sprintln("There are currently services scheduled from  within the next  minutes:")
 
