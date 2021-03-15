@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -99,13 +98,13 @@ func getStation(ctx context.Context, stationName string) (*appStation, error) {
 }
 
 // Add a Google Request record to DynamoDB.
-func putGoogleRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest) error {
+func putGoogleRequest(ctx context.Context, requestFromGoogle requestGoogleHome) error {
 	fmt.Println("Saving Google Request")
 	ctx, seg := xray.BeginSubsegment(ctx, "Saving Google Request")
 	err := seg.AddMetadata("AWSService", "DynamoDB")
 	xray.AWS(db.Client)
 
-	attibutes, err := dynamodbattribute.MarshalMap(gRequest.Body)
+	attibutes, err := dynamodbattribute.MarshalMap(requestFromGoogle)
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String("TrainsRequests"),
 		Item:      attibutes,
