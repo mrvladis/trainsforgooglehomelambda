@@ -6,3 +6,4 @@ env.json
 tmp4/*
 tmp4/main.go
 .gitignore
+tmp3/*

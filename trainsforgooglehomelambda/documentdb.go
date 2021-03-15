@@ -98,7 +98,7 @@ func getStation(ctx context.Context, stationName string) (*appStation, error) {
 	return station, nil
 }
 
-// Add a habbit record to DynamoDB.
+// Add a Google Request record to DynamoDB.
 func putGoogleRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest) error {
 	fmt.Println("Saving Google Request")
 	ctx, seg := xray.BeginSubsegment(ctx, "Saving Google Request")

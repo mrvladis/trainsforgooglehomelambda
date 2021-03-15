@@ -63,11 +63,6 @@ func processRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest)
 
 	fmt.Println("Getting the Application Parameters")
 	fmt.Printf("Request Body: %v", gRequest.Body)
-	fmt.Println("Storing Request to DocumentDB")
-	err := putGoogleRequest(ctx, gRequest)
-	if err != nil {
-		fmt.Printf("Can't Save Google Request")
-	}
 	//Get the Application Parameters
 	secrets, err := getSecret(ctx)
 	if err != nil {
@@ -103,6 +98,12 @@ func processRequest(ctx context.Context, gRequest events.APIGatewayProxyRequest)
 		}
 		return clientError(http.StatusUnprocessableEntity)
 
+	}
+	// stoting Google request
+	fmt.Println("Storing Request to DocumentDB")
+	err = putGoogleRequest(ctx, requestFromGoogle)
+	if err != nil {
+		fmt.Printf("Can't Save Google Request")
 	}
 	//Analysing the initial query
 	intentNameValue := *requestFromGoogle.Intent.Name
